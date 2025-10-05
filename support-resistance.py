@@ -1,5 +1,6 @@
 import pandas as pd
 from pandas._libs import index
+import plotly.express as px
 
 #This Function is used to read candle data from csv file and returns the last 200 rows
 def read_candle_data():
@@ -23,7 +24,13 @@ def calculate_support_resistance(dataFrame,threshold):
     else:
         print(f"The Price is Trading within range {support_range} & {resistance_range}")
     print(f'The Support is {support} and resistance is {resistance} and the current price is {current_price}')
+    return support,resistance
 
+def plot_values(dataFrame):
+    fid=px.line(dataFrame,x=dataFrame.index,y=['c','o'],title='Closing Values')
+    fid.show()
 
 dataFrame=read_candle_data()
-calculate_support_resistance(dataFrame,2)
+support_value,resistance_value=calculate_support_resistance(dataFrame,10)
+print(support_value,resistance_value)
+plot_values(dataFrame)

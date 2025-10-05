@@ -1,8 +1,6 @@
 #This File is used to analyse the Daily,Weekly and Monthly Risk exposure and Return Signals to avoid Over Trading and loss of Capital on a wrong market and calculating other parameters for smooth trade operations.
 import pandas as pd
 
-INITIAL_CAPITAL = 1000 #Assumes the iniial capital of 1000 is set for the particular Strategy
-
 def daily_limit(starting_capital,current_portfolio_value):
     if(current_portfolio_value<=(starting_capital-(starting_capital*0.01))):
         print("The Algorithm has reached a max drawdown limit for the day. Trading to be paused for the day")
