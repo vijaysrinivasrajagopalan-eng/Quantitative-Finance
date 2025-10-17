@@ -4,11 +4,11 @@ import plotly.express as pt
 INITIAL_CAPITAL = 1000
 
 def plot_compare_index_24to25():
-    dataFrame=pd.read_csv("IndexReturn23.csv")  #Modify the File Name to Calculate For Different Years
+    dataFrame=pd.read_csv("Index24to25Oct.csv")  #Modify the File Name to Calculate For Different Years
     dataFrame=dataFrame[::-1]
     dataFrame.set_index("Date",inplace=True)
     dataFrame.drop(['Index Name'],axis=1,inplace=True)
-    dataFrame=simulate_signal_trade(dataFrame)
+    dataFrame=simulate_signal_trade_duplicate(dataFrame)
     dataFrame=calculate_returns(dataFrame,1000)
     plot_chart(dataFrame,['IndexReturns','StrategicReturn'])
 
@@ -80,6 +80,43 @@ def simulate_signal_trade(dataFrame):
     return dataFrame
                 
     
-
+def simulate_signal_trade_duplicate(dataFrame):
+    dataFrame['EMA5']=round(dataFrame['Close'].rolling(5).mean(),2)
+    dataFrame['EMA9']=round(dataFrame['Close'].rolling(9).mean(),2)
+    dataFrame['StrategicReturn']=0
+    dataFrame=dataFrame.dropna()
+    initial_capital=1000
+    no_of_trades=0
+    prev_ema5=dataFrame.iloc[0]['EMA5']
+    prev_ema9=dataFrame.iloc[0]['EMA9']
+    position=0
+    take_profit=0
+    stop_loss=0
+    for index,value in dataFrame.iterrows():
+        capital_left=0
+        if value['EMA5']> value['EMA9'] and prev_ema9<=prev_ema5 and position==0 :
+            position_size=round(initial_capital/value['Close'],2)
+            order_price=value['Close']
+            position=1
+            no_of_trades+=1
+        elif position==1 :
+            if(value['EMA5']<=value['EMA9'] and value['Close']>=order_price):
+                initial_capital +=(value['Close']-order_price)*position_size
+                position=0
+            if(value['EMA5']<=value['EMA9'] and value['Close']< order_price):
+                initial_capital-=(order_price-value['Close'])*position_size
+                position=0
+            else:
+                capital_left=round((initial_capital/order_price)*value['Close'],2)
+        prev_ema5=value['EMA5']
+        prev_ema9=value['EMA9']
+        if capital_left!=0:
+            dataFrame.at[index,'StrategicReturn']=capital_left
+            capital_left=0
+        else:
+            dataFrame.at[index,'StrategicReturn']=initial_capital
+    #print(dataFrame)
+    print(no_of_trades)
+    return dataFrame
 
 plot_compare_index_24to25()
